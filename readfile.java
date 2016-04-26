@@ -1,4 +1,4 @@
-
+package cpe593_neuralnet;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-//Processing a image file
+
 public class readfile {
 	public static void main(String[] args) throws IOException{
 			BufferedImage bimage = null;

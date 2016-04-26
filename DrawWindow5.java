@@ -1,4 +1,4 @@
-
+package cpe593_neuralnet;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -20,7 +20,7 @@ import javax.swing.JPanel;
 
 public class DrawWindow5 extends JFrame {  
 	private DrawingArea drawArea;
-	public DrawWindow5(NN nn) throws IOException {
+	public DrawWindow5(NeuralNet nn) throws IOException {
 		super("Drawing");
 		setSize(200,200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -32,7 +32,7 @@ public class DrawWindow5 extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				BufferedImage bimage = null;
 				try {
-					bimage = ImageIO.read(new File("data/5.jpg"));
+					bimage = ImageIO.read(new File("5.jpg"));
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -61,13 +61,10 @@ public class DrawWindow5 extends JFrame {
 					}System.out.println();
 				}
 		        System.out.println("****************-------******");
-		        double[] ff=nn.predicate(result);
-		        for(int i=0;i<ff.length;i++){
-		        	System.out.print(ff[i]+" ");
-		        }
-		        System.out.println();
+		        int numberI=nn.test(result);
+		
 		        		
-		        System.out.println("Final result is:"+Main.get(ff));
+		        System.out.println("Final result is:"+numberI);
 			}
 		});
 		c.add(BorderLayout.SOUTH,b);

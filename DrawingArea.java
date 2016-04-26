@@ -1,3 +1,5 @@
+package cpe593_neuralnet;
+
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -15,7 +17,7 @@ public class DrawingArea extends JPanel {
 	private int width = 1; 
     private int height = 1;
 	public DrawingArea() throws IOException{
-		bimage= ImageIO.read(new File("data/5.jpg"));
+		bimage= ImageIO.read(new File("5.jpg"));
 	}
 	
 	public void paintComponent(Graphics g){
