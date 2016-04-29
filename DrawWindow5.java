@@ -45,17 +45,17 @@ public class DrawWindow5 extends JFrame {
 				}
 				drawArea.setBackground(Color.WHITE);
 				drawArea.repaint();
-				c.add(drawArea, BorderLayout.CENTER);
+				c.add(drawArea, BorderLayout.NORTH);
 		        double[] result=new double[28*28];
 		        for(int i=0;i<=27;i++){
 					for(int j=0;j<=27;j++){
 						if(bimage.getRGB(j, i)==-16777216){
 							result[i * 28 + j ]=1;
-							System.out.print(1+" ");
+							System.out.print(1+"");
 						}
 							
 						else{
-							System.out.print(0+" ");
+							System.out.print(0+"");
 							result[i * 28 + j ]=0;
 						}
 					}System.out.println();
@@ -67,6 +67,6 @@ public class DrawWindow5 extends JFrame {
 		        System.out.println("Final result is:"+numberI);
 			}
 		});
-		c.add(BorderLayout.SOUTH,b);
+		c.add(BorderLayout.CENTER,b);
 	}
 }

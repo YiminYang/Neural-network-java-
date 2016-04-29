@@ -13,7 +13,7 @@ public class readfile {
 	public static void main(String[] args) throws IOException{
 			BufferedImage bimage = null;
 			try {
-				bimage = ImageIO.read(new File("data/5.jpg"));
+				bimage = ImageIO.read(new File("5.jpg"));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

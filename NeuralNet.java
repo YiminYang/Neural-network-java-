@@ -5,19 +5,24 @@ public class NeuralNet {
 	private double learningRate;
 	private int num_inputs;
 	private int num_outputs;
-	//private NeuralLayer[] hiddenlayers;
-	private NeuralLayer hiddenlayer;
+	private NeuralLayer[] hiddenlayers;
+	//private NeuralLayer hiddenlayer;
 	private NeuralLayer outputlayer;
 	private double[] input_value;
 	
 	
-	public NeuralNet(int num_inputs,int hiddenlayer_neurons,int num_outputs, double momentum, double learningRate){
+	public NeuralNet(int num_inputs,int[] hiddenlayer_neurons,int num_outputs, double momentum, double learningRate){
 		this.num_inputs=num_inputs;
 		this.num_outputs=num_outputs;
 		this.learningRate=learningRate;
 		this.momentum=momentum;
-		hiddenlayer= new NeuralLayer(num_inputs,hiddenlayer_neurons);
-		outputlayer= new NeuralLayer(hiddenlayer_neurons,num_outputs);
+		System.out.println(hiddenlayer_neurons[0]);
+		hiddenlayers= new NeuralLayer[hiddenlayer_neurons.length];
+		this.hiddenlayers[0]= new NeuralLayer(num_inputs,hiddenlayer_neurons[0]);
+		for(int i=1;i<hiddenlayer_neurons.length;i++){
+			this.hiddenlayers[i]= new NeuralLayer(hiddenlayer_neurons[i-1],hiddenlayer_neurons[i]);
+		}
+		outputlayer= new NeuralLayer(hiddenlayer_neurons[hiddenlayer_neurons.length-1],num_outputs);
 		input_value= new double[num_inputs];
 	}
 	
@@ -40,8 +45,9 @@ public class NeuralNet {
 		System.out.println("Number of Input Neurons: "+this.num_inputs);
 		System.out.println("Number of Hidden Layers: "+ 1);
 
-		
-		System.out.println("Number of neurons in hidden layer: "+ hiddenlayer.getNumNeurons());
+		for(int i=0;i<hiddenlayers.length;i++){
+			System.out.println("Number of neurons in hidden_layer_"+i+" is: "+ hiddenlayers[i].getNumNeurons());
+		}
 
 		System.out.println("Number of Output Neurons: "+this.num_outputs );
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -50,9 +56,9 @@ public class NeuralNet {
 	public int FindMax(double[] output){
 		int maxindex=0;
 		double maxvalue=0;
-		for(int i=1;i<=output.length;i++){
-			if(output[i-1]>maxvalue){
-				maxvalue=output[i-1];
+		for(int i=0;i<output.length;i++){
+			if(output[i]>maxvalue){
+				maxvalue=output[i];
 				maxindex=i;
 			}
 		}
@@ -60,12 +66,15 @@ public class NeuralNet {
 	}
 	
 	public void train(double[][]trainSamples, double[][] labels, int epoch){
+		//Complexity: epoch * trainSample.length * (2*O(28*28*10)+3*O(10*10))
 		for(int i=0;i<=epoch;i++){
 			double error=0;
 			for(int j=0;j<trainSamples.length;j++){
 				double[] output=netFeedForward(trainSamples[j]);
-				for(int k=0;k<output.length;k++){
-					error+=0.5*(output[k]-labels[j][k])*(output[k]-labels[j][k]);
+				if(i%2==0){
+					for(int k=0;k<output.length;k++){
+						error+=0.5*(output[k]-labels[j][k])*(output[k]-labels[j][k]);
+					}
 				}
 				netBackPropagation(labels[j]);
 				updateWeights();
@@ -75,12 +84,12 @@ public class NeuralNet {
 			}
 		}
 	}
-	public void test(double[][] testSample, double[][] testlabel){
+	public void test(double[][] testSample, double[][] testlabel){//O(testSample.length*O(28*28*10+10*10))
 		int count=0;
 		for(int i=0;i<testSample.length;i++){
 			double[] output=netFeedForward(testSample[i]);
 			int v=this.FindMax(output);
-			if(testlabel[i][v-1]==1){
+			if(testlabel[i][v]==1){
 				count++;
 			}
 		}
@@ -91,58 +100,97 @@ public class NeuralNet {
 		int v=this.FindMax(output);
 		return v;
 	}
-	public double[] netFeedForward(double[] traindata){
+	public double[] netFeedForward(double[] traindata){//Complexity: O(28*28*10) +O(10*10) input=28*28 hidden=10 output=10
 		this.input_value=traindata;
-		for(int i=0;i<hiddenlayer.num_neurons;i++){
-			double temp=0;
-			for(int j=0;j<this.num_inputs;j++){
-				temp+=input_value[j]*hiddenlayer.weight[i][j];
+		for(int k=0;k<hiddenlayers.length;k++){
+			if(k==0){
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(28*28*10)
+					double temp=0;
+					for(int j=0;j<this.num_inputs;j++){
+						temp+=input_value[j]*hiddenlayers[k].weight[i][j];
+					}
+					temp+=hiddenlayers[k].weight[i][this.num_inputs];
+					hiddenlayers[k].output[i]= sigmoid(temp);
+				}
 			}
-			temp+=hiddenlayer.weight[i][this.num_inputs];
-			hiddenlayer.output[i]= sigmoid(temp);
+			else{
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(28*28*10)
+					double temp=0;
+					for(int j=0;j<hiddenlayers[k-1].num_neurons;j++){
+						temp+=hiddenlayers[k-1].output[j] * hiddenlayers[k].weight[i][j];
+					}
+					temp+=hiddenlayers[k].weight[i][hiddenlayers[k-1].num_neurons];
+					hiddenlayers[k].output[i]= sigmoid(temp);
+				}
+			}
 		}
-		
-		for(int i=0;i<outputlayer.num_neurons;i++){
+		for(int i=0;i<outputlayer.num_neurons;i++){//O(10*10)
 			double temp=0;
-			for(int j=0;j<hiddenlayer.num_neurons;j++){
-				temp+=hiddenlayer.output[j]*outputlayer.weight[i][j];
+			for(int j=0;j<hiddenlayers[hiddenlayers.length-1].num_neurons;j++){
+				temp+=hiddenlayers[hiddenlayers.length-1].output[j]*outputlayer.weight[i][j];
 			}
-			temp+=outputlayer.weight[i][hiddenlayer.num_neurons];
+			temp+=outputlayer.weight[i][hiddenlayers[hiddenlayers.length-1].num_neurons];
 			outputlayer.output[i] = sigmoid(temp);
 		}
 		return outputlayer.output;
 	}
 	
-	private void netBackPropagation(double[] label) {
-		for(int i=0;i<outputlayer.num_neurons;i++){
+	private void netBackPropagation(double[] label) {//Complexity: O(10)+O(100)
+		for(int i=0;i<outputlayer.num_neurons;i++){//O(10) 
 			outputlayer.delta[i]=outputlayer.output[i]*(1-outputlayer.output[i])*(label[i]-outputlayer.output[i]);
 		}
-		for(int i=0;i<hiddenlayer.num_neurons;i++){
-			double temp=0;
-			for(int j=0;j<outputlayer.num_neurons;j++){
-				temp+=outputlayer.weight[j][i]*outputlayer.delta[j];
+		for(int k=hiddenlayers.length-1;k>=0;k--){
+			if(k==hiddenlayers.length-1){
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(10*10)
+					double temp=0;
+					for(int j=0;j<outputlayer.num_neurons;j++){
+						temp+=outputlayer.weight[j][i]*outputlayer.delta[j];
+					}
+					hiddenlayers[k].delta[i]=hiddenlayers[k].output[i]*(1-hiddenlayers[k].output[i])*temp;
+				}
 			}
-			hiddenlayer.delta[i]=hiddenlayer.output[i]*(1-hiddenlayer.output[i])*temp;
+			else{
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(10*10)
+					double temp=0;
+					for(int j=0;j<hiddenlayers[k+1].num_neurons;j++){
+						temp+=hiddenlayers[k+1].weight[j][i] * hiddenlayers[k+1].delta[j];
+					}
+					hiddenlayers[k].delta[i]=hiddenlayers[k].output[i]*(1-hiddenlayers[k].output[i])*temp;
+				}
+			}
 		}
 	}
 	
-	private void updateWeights() {
-		for(int i=0;i<hiddenlayer.num_neurons;i++){
-			for(int j=0;j<this.num_inputs;j++){
-				double change=this.learningRate* hiddenlayer.delta[i]*this.input_value[j];
-				hiddenlayer.weight[i][j]+=change + this.momentum* hiddenlayer.momentum_weight[i][j];
-				hiddenlayer.momentum_weight[i][j]=change;
+	private void updateWeights() {// Complexity: O(28*28*10)+O(10*10)
+		for(int k=0;k<hiddenlayers.length;k++){
+			if(k==0){
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){
+					for(int j=0;j<this.num_inputs;j++){
+						double change=this.learningRate* hiddenlayers[k].delta[i]*this.input_value[j];
+						hiddenlayers[k].weight[i][j]+=change + this.momentum* hiddenlayers[k].momentum_weight[i][j];
+						hiddenlayers[k].momentum_weight[i][j]=change;
+					}
+					hiddenlayers[k].weight[i][this.num_inputs]+= this.learningRate*hiddenlayers[k].delta[i]+this.momentum*hiddenlayers[k].momentum_weight[i][this.num_inputs];
+				}
 			}
-			hiddenlayer.weight[i][this.num_inputs]+= this.learningRate*hiddenlayer.delta[i]+this.momentum*hiddenlayer.momentum_weight[i][this.num_inputs];
+			else{
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){
+					for(int j=0;j<hiddenlayers[k-1].num_neurons;j++){
+						double change=this.learningRate* hiddenlayers[k].delta[i] * hiddenlayers[k-1].output[j];
+						hiddenlayers[k].weight[i][j]+=change + this.momentum* hiddenlayers[k].momentum_weight[i][j];
+						hiddenlayers[k].momentum_weight[i][j]=change;
+					}
+					hiddenlayers[k].weight[i][hiddenlayers[k-1].num_neurons]+= this.learningRate*hiddenlayers[k].delta[i]+this.momentum*hiddenlayers[k].momentum_weight[i][hiddenlayers[k-1].num_neurons];
+				}
+			}
 		}
-		
 		for(int i=0;i<outputlayer.num_neurons;i++){
-			for(int j=0;j<hiddenlayer.num_neurons;j++){
-				double change=this.learningRate* outputlayer.delta[i]*hiddenlayer.output[j];
+			for(int j=0;j<hiddenlayers[hiddenlayers.length-1].num_neurons;j++){
+				double change=this.learningRate * outputlayer.delta[i] * hiddenlayers[hiddenlayers.length-1].output[j];
 				outputlayer.weight[i][j]+= change+ this.momentum*outputlayer.momentum_weight[i][j];
 				outputlayer.momentum_weight[i][j]=change;
 			}
-			outputlayer.weight[i][hiddenlayer.num_neurons]+=this.learningRate*outputlayer.delta[i]+this.momentum*outputlayer.momentum_weight[i][hiddenlayer.num_neurons];
+			outputlayer.weight[i][hiddenlayers[hiddenlayers.length-1].num_neurons]+=this.learningRate*outputlayer.delta[i]+this.momentum*outputlayer.momentum_weight[i][hiddenlayers[hiddenlayers.length-1].num_neurons];
 		}
 	}
 	

@@ -14,8 +14,6 @@ import javax.swing.JPanel;
 
 public class DrawingArea extends JPanel {
 	private BufferedImage bimage=null;
-	private int width = 1; 
-    private int height = 1;
 	public DrawingArea() throws IOException{
 		bimage= ImageIO.read(new File("5.jpg"));
 	}

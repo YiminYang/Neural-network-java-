@@ -20,8 +20,8 @@ public class NeuralLayer {
 		weight=new double[num_neurons][num_inputs+1];
 		initializeWeight();
 	}
-	
-	public void initializeWeight(){
+	//Two layers, so 2O(in*out)
+	public void initializeWeight(){//complexity:  O(num_inputs*num_neurons)
 		for(int i=0;i<weight.length;i++){
 			//double value=r.nextDouble()*2-1;
 			for (int j=0;j<weight[0].length;j++){

@@ -8,22 +8,33 @@ import java.io.IOException;
 
 public class mainFunction {
 	public static void main(String[] args) throws IOException{
-		BufferedReader br = new BufferedReader(new FileReader("train.csv"));
-		int input_neurons=28*28;
-		int output_neurons=10;
-		int lineToRead=3500;
+		BufferedReader br = new BufferedReader(new FileReader("TrainData.csv"));
+		BufferedReader br2 = new BufferedReader(new FileReader("TrainLabel.csv"));
+
+		int input_neurons=150;
+		int output_neurons=9;
+		int lineToRead=2000;
 		double[][] traindata= new double[lineToRead][input_neurons];
 		double[][] traintarget=new double[lineToRead][output_neurons];
-		br.readLine();//header
+		//br.readLine();//header
+		/*
+		 * Complexity here is 7000* O(input) input=28*28
+		 */
 		for(int linenum=0;linenum<lineToRead;linenum++){
 			String s=br.readLine();
+			String tar=br2.readLine();
 			if(s==null) break;
 			String[] lineArray = s.split(",");
-			traintarget[linenum][Integer.parseInt(lineArray[0])]=1;
+			String[] targ= tar.split(",");
+			//System.out.println(targ[0]);
+			traintarget[linenum][Integer.parseInt(targ[0])-1]=1;
 	           
-	        for(int k=1;k<lineArray.length;k++){
-	            traindata[linenum][k-1]=getFeatureValue(Integer.parseInt(lineArray[k]));
+	        for(int k=0;k<lineArray.length;k++){
+	            //traindata[linenum][k]=(Double.parseDouble(lineArray[k]));
+	            traindata[linenum][k]=(Double.parseDouble(lineArray[k]));
+
 	        } 
+	        /*
 	        if(linenum%500==0){
 	            int m = 28;
 	            int n = 28;
@@ -34,24 +45,31 @@ public class mainFunction {
 		            }
 		        }
 		        //printImage(image);
-	        }
+	        }*/
 		}
-		lineToRead=500;
+		lineToRead=400;
+		//1000* O(input)
 		double[][] testdata= new double[lineToRead][input_neurons];
 		double[][] testtarget=new double[lineToRead][output_neurons];
 		for(int linenum=0;linenum<lineToRead;linenum++){
 			String s=br.readLine();
+			String tar=br2.readLine();
 			if(s==null) break;
 			String[] lineArray = s.split(",");
-			testtarget[linenum][Integer.parseInt(lineArray[0])]=1;
+			String[] targ=tar.split(",");
+			testtarget[linenum][Integer.parseInt(targ[0])-1]=1;
 	           
-	        for(int k=1;k<lineArray.length;k++){
-	            testdata[linenum][k-1]=getFeatureValue(Integer.parseInt(lineArray[k]));
+	        for(int k=0;k<lineArray.length;k++){
+	            //testdata[linenum][k]=getFeatureValue(Integer.parseInt(lineArray[k]));
+	        	testdata[linenum][k]=(Double.parseDouble(lineArray[k]));
 	        } 
 		}
-		
-		NeuralNet nn= new NeuralNet(input_neurons, 15, 10, 0.2, 0.8);
-		nn.train(traindata, traintarget, 40);
+		br.close();
+		br2.close();
+		int[] hidden_neurons={15};
+		NeuralNet nn= new NeuralNet(input_neurons, hidden_neurons, 9, 0.1, 0.95);
+		nn.printArchitecture();
+		nn.train(traindata, traintarget, 100);
 		System.out.println("Training Data Accuracy");
 		nn.test(traindata,traintarget);
 		System.out.println("Test Data Accuracy");
@@ -72,8 +90,7 @@ public class mainFunction {
         }
         System.out.println("---------");
     }
-		
-	
+
 	private static int getFeatureValue(int parseInt) {
 		if (parseInt >= 100) {
             return 1;
