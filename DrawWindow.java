@@ -17,10 +17,13 @@ import javax.imageio.stream.ImageInputStream;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+/*
+ * This is the class to set a JFrame so that we can just test the file by click a button
+ */
 
-public class DrawWindow5 extends JFrame {  
+public class DrawWindow extends JFrame {  
 	private DrawingArea drawArea;
-	public DrawWindow5(NeuralNet nn) throws IOException {
+	public DrawWindow(NeuralNet nn) throws IOException {
 		super("Drawing");
 		setSize(200,200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

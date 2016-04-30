@@ -1,5 +1,14 @@
 package cpe593_neuralnet;
-
+/*
+ * This class builds the NeuralNet
+ * The NeuralNet includes the momentum and learningRate, input number, output number
+ * And hidden layers and output layer and vector of input value
+ * Two task of the neural net:  train and test
+ * Three main function of training:  feed-forward back-propagation update-weight
+ * In training task: print the error every several epochs 
+ * In testing task: print the accuracy of the result including misclassification
+ * Some supplementary function:  sigmoid, perceptron, print-Architecture, findMax 
+ */
 public class NeuralNet {
 	private double momentum;
 	private double learningRate;
@@ -16,7 +25,6 @@ public class NeuralNet {
 		this.num_outputs=num_outputs;
 		this.learningRate=learningRate;
 		this.momentum=momentum;
-		System.out.println(hiddenlayer_neurons[0]);
 		hiddenlayers= new NeuralLayer[hiddenlayer_neurons.length];
 		this.hiddenlayers[0]= new NeuralLayer(num_inputs,hiddenlayer_neurons[0]);
 		for(int i=1;i<hiddenlayer_neurons.length;i++){
@@ -53,7 +61,7 @@ public class NeuralNet {
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	}
 	
-	public int FindMax(double[] output){
+	public int findMax(double[] output){
 		int maxindex=0;
 		double maxvalue=0;
 		for(int i=0;i<output.length;i++){
@@ -79,25 +87,38 @@ public class NeuralNet {
 				netBackPropagation(labels[j]);
 				updateWeights();
 			}
-			if(i%2==0){
+			if(i%10==0){
 				System.out.println("When epoch is "+i+",mean square error is "+error);
 			}
 		}
 	}
-	public void test(double[][] testSample, double[][] testlabel){//O(testSample.length*O(28*28*10+10*10))
+	public int[][] test(double[][] testSample, double[][] testlabel){//O(testSample.length*O(28*28*10+10*10))
 		int count=0;
+		int[][] misclassification= new int[testlabel[0].length][testlabel[0].length];
 		for(int i=0;i<testSample.length;i++){
 			double[] output=netFeedForward(testSample[i]);
-			int v=this.FindMax(output);
-			if(testlabel[i][v]==1){
+			int predict=this.findMax(output);
+			if(testlabel[i][predict]==1){
 				count++;
 			}
+			else{
+				int origin=0;
+				for(int j=0;j<testlabel[i].length;j++){
+					if(testlabel[i][j]==1){
+						origin=j;
+						break;
+					}
+				}
+				misclassification[origin][predict]+=1;
+			}
 		}
+		System.out.println("Total case:"+testSample.length+", Accurate case:"+count+",Wrong case:"+(testSample.length-count));
 		System.out.println("Accuracy is "+(int)(10000.0*count/testSample.length)/100.0+"%");
+		return misclassification;
 	}
 	public int test(double[] onetestSample){
 		double[] output=netFeedForward(onetestSample);
-		int v=this.FindMax(output);
+		int v=this.findMax(output);
 		return v;
 	}
 	public double[] netFeedForward(double[] traindata){//Complexity: O(28*28*10) +O(10*10) input=28*28 hidden=10 output=10
@@ -122,7 +143,9 @@ public class NeuralNet {
 					temp+=hiddenlayers[k].weight[i][hiddenlayers[k-1].num_neurons];
 					hiddenlayers[k].output[i]= sigmoid(temp);
 				}
+				//System.out.println("Now feed in "+k+" hiddenlayer");
 			}
+			
 		}
 		for(int i=0;i<outputlayer.num_neurons;i++){//O(10*10)
 			double temp=0;
@@ -157,6 +180,7 @@ public class NeuralNet {
 					}
 					hiddenlayers[k].delta[i]=hiddenlayers[k].output[i]*(1-hiddenlayers[k].output[i])*temp;
 				}
+				//System.out.println("Now BP in "+k+" hiddenlayer");
 			}
 		}
 	}
@@ -182,6 +206,7 @@ public class NeuralNet {
 					}
 					hiddenlayers[k].weight[i][hiddenlayers[k-1].num_neurons]+= this.learningRate*hiddenlayers[k].delta[i]+this.momentum*hiddenlayers[k].momentum_weight[i][hiddenlayers[k-1].num_neurons];
 				}
+				//System.out.println("Now UpdataWeight in "+k+" hiddenlayer");
 			}
 		}
 		for(int i=0;i<outputlayer.num_neurons;i++){

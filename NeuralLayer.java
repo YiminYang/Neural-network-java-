@@ -1,7 +1,12 @@
 package cpe593_neuralnet;
 
 import java.util.Random;
-
+/*
+ * This class is about each Neural Layer, The neural layer has its input number, its neurons number
+ * And vector of the output, delta for each neuron
+ * Also two dimension data of the weight and momentum weight
+ * First, initialize the weight by random number from -1 to 1
+ */
 public class NeuralLayer {
 	public int num_inputs;
 	public int num_neurons;
@@ -11,7 +16,7 @@ public class NeuralLayer {
 	public double[][] weight;
 	private static Random r=new Random();
 	
-	public NeuralLayer(int num_inputs,int num_neurons){
+	public NeuralLayer(int num_inputs,int num_neurons){//constructor and initialize the weight
 		this.num_inputs=num_inputs;
 		this.num_neurons=num_neurons;
 		output= new double[num_neurons];

@@ -1,5 +1,7 @@
 package cpe593_neuralnet;
-
+/*
+ * This is the class to test how to read a file and how to pre-process the data
+ */
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;

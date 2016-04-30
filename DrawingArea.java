@@ -1,5 +1,7 @@
 package cpe593_neuralnet;
-
+/*
+ * This is the class to read the image file in order to display it 
+ */
 
 import java.awt.Color;
 import java.awt.Graphics;
