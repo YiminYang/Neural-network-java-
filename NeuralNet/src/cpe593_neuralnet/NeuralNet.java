@@ -9,7 +9,7 @@ package cpe593_neuralnet;
  * In testing task: print the accuracy of the result including misclassification
  * Some supplementary function:  sigmoid, perceptron, print-Architecture, findMax 
  */
-public class NeuralNet {
+public class NeuralNet {//The neural network model
 	private double momentum;
 	private double learningRate;
 	private int num_inputs;
@@ -34,7 +34,7 @@ public class NeuralNet {
 		input_value= new double[num_inputs];
 	}
 	
-	public double sigmoid(double v){
+	public double sigmoid(double v){//To normalize the data
 		return 1.0 / (1.0 + Math.pow(Math.E, -v));
 	}
 	public double preceptron(double v,double threshold){
@@ -48,7 +48,7 @@ public class NeuralNet {
 	}
 	
 	
-	public void printArchitecture(){
+	public void printArchitecture(){//Print the architecture
 		System.out.println( "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		System.out.println("Number of Input Neurons: "+this.num_inputs);
 		System.out.println("Number of Hidden Layers: "+ 1);
@@ -61,7 +61,7 @@ public class NeuralNet {
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	}
 	
-	public int findMax(double[] output){
+	public int findMax(double[] output){//Find the index of the output
 		int maxindex=0;
 		double maxvalue=0;
 		for(int i=0;i<output.length;i++){
@@ -74,12 +74,12 @@ public class NeuralNet {
 	}
 	
 	public void train(double[][]trainSamples, double[][] labels, int epoch){
-		//Complexity: epoch * trainSample.length * (2*O(28*28*10)+3*O(15*10))
-		for(int i=0;i<=epoch;i++){
+		//Complexity: 300 billion times of computation
+		for(int i=0;i<=epoch;i++){//50 times
 			double error=0;
-			for(int j=0;j<trainSamples.length;j++){
+			for(int j=0;j<trainSamples.length;j++){//38000 training samples
 				double[] output=netFeedForward(trainSamples[j]);
-				if(i%2==0){
+				if(i%10==0){
 					for(int k=0;k<output.length;k++){
 						error+=0.5*(output[k]-labels[j][k])*(output[k]-labels[j][k]);
 					}
@@ -92,10 +92,10 @@ public class NeuralNet {
 			}
 		}
 	}
-	public int[][] test(double[][] testSample, double[][] testlabel){//O(testSample.length*O(28*28*10+15*10))
+	public int[][] test(double[][] testSample, double[][] testlabel){//O(testSample.length*O(28*28*10+10*10))
 		int count=0;
 		int[][] misclassification= new int[testlabel[0].length][testlabel[0].length];
-		for(int i=0;i<testSample.length;i++){
+		for(int i=0;i<testSample.length;i++){//2000 testing samples
 			double[] output=netFeedForward(testSample[i]);
 			int predict=this.findMax(output);
 			if(testlabel[i][predict]==1){
@@ -121,11 +121,13 @@ public class NeuralNet {
 		int v=this.findMax(output);
 		return v;
 	}
-	public double[] netFeedForward(double[] traindata){//Complexity: O(28*28*10) +O(15*10) input=28*28 hidden=10 output=10
+	public double[] netFeedForward(double[] traindata){
+	//Complexity: O(28*28*100) +O(100*10) input=28*28 hidden neurons=100 output neurons=10
 		this.input_value=traindata;
 		for(int k=0;k<hiddenlayers.length;k++){
+		//First hidden layer's neurons' output is linear combination of input values
 			if(k==0){
-				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(28*28*10)
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(28*28*100)
 					double temp=0;
 					for(int j=0;j<this.num_inputs;j++){
 						temp+=input_value[j]*hiddenlayers[k].weight[i][j];
@@ -135,7 +137,8 @@ public class NeuralNet {
 				}
 			}
 			else{
-				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(input*output)
+				//Other hidden layer's nuerons' output is linear combination of former layer's neurons' output
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(100* X )
 					double temp=0;
 					for(int j=0;j<hiddenlayers[k-1].num_neurons;j++){
 						temp+=hiddenlayers[k-1].output[j] * hiddenlayers[k].weight[i][j];
@@ -147,7 +150,8 @@ public class NeuralNet {
 			}
 			
 		}
-		for(int i=0;i<outputlayer.num_neurons;i++){//O(15*10)
+		for(int i=0;i<outputlayer.num_neurons;i++){//O(100*10)
+			//Output layer's neurons' output is the linear combination of last hidden layer's neurons' output
 			double temp=0;
 			for(int j=0;j<hiddenlayers[hiddenlayers.length-1].num_neurons;j++){
 				temp+=hiddenlayers[hiddenlayers.length-1].output[j]*outputlayer.weight[i][j];
@@ -158,13 +162,14 @@ public class NeuralNet {
 		return outputlayer.output;
 	}
 	
-	private void netBackPropagation(double[] label) {//Complexity: O(10)+O(150)
+	private void netBackPropagation(double[] label) {//Complexity: O(10)+O(1000)
 		for(int i=0;i<outputlayer.num_neurons;i++){//O(10) 
 			outputlayer.delta[i]=outputlayer.output[i]*(1-outputlayer.output[i])*(label[i]-outputlayer.output[i]);
 		}
 		for(int k=hiddenlayers.length-1;k>=0;k--){
+			//Last hidden layer's neurons' delta is linear combination of output layer's neurons' delta
 			if(k==hiddenlayers.length-1){
-				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(15*10)
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(100*10)
 					double temp=0;
 					for(int j=0;j<outputlayer.num_neurons;j++){
 						temp+=outputlayer.weight[j][i]*outputlayer.delta[j];
@@ -173,7 +178,8 @@ public class NeuralNet {
 				}
 			}
 			else{
-				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(15*10)
+				//Other hidden layer's neurons' delta is linear combination of latter hidden layer's neurons' delta
+				for(int i=0;i<hiddenlayers[k].num_neurons;i++){//O(10*10)
 					double temp=0;
 					for(int j=0;j<hiddenlayers[k+1].num_neurons;j++){
 						temp+=hiddenlayers[k+1].weight[j][i] * hiddenlayers[k+1].delta[j];
@@ -185,8 +191,9 @@ public class NeuralNet {
 		}
 	}
 	
-	private void updateWeights() {// Complexity: O(28*28*10)+O(15*10)
+	private void updateWeights() {// Complexity: O(28*28*100)+O(100*10)
 		for(int k=0;k<hiddenlayers.length;k++){
+			//First hidden layer's weight is linear combination of input values
 			if(k==0){
 				for(int i=0;i<hiddenlayers[k].num_neurons;i++){
 					for(int j=0;j<this.num_inputs;j++){
@@ -198,6 +205,7 @@ public class NeuralNet {
 				}
 			}
 			else{
+				//Other hidden layer's weight is linerar combination of former layer's neurons' output
 				for(int i=0;i<hiddenlayers[k].num_neurons;i++){
 					for(int j=0;j<hiddenlayers[k-1].num_neurons;j++){
 						double change=this.learningRate* hiddenlayers[k].delta[i] * hiddenlayers[k-1].output[j];
@@ -210,6 +218,7 @@ public class NeuralNet {
 			}
 		}
 		for(int i=0;i<outputlayer.num_neurons;i++){
+			//Output layer's weight is linerar combination of last hidden layer's neurons' output
 			for(int j=0;j<hiddenlayers[hiddenlayers.length-1].num_neurons;j++){
 				double change=this.learningRate * outputlayer.delta[i] * hiddenlayers[hiddenlayers.length-1].output[j];
 				outputlayer.weight[i][j]+= change+ this.momentum*outputlayer.momentum_weight[i][j];
